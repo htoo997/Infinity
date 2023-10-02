@@ -63,6 +63,33 @@ class Infinity {
     return error;
     });
   }
+  createItems(param){
+    if(!param) {
+        throw new Error('Must have exactly one parameter')
+    }
+    const { workspaceID, boardID, data } = param;
+    if(!workspaceID) {
+        throw new Error('Required* workspaceID')
+    } else if (!boardID) {
+        throw new Error('Required* boardID')
+    } else if(!data) {
+        throw new Error('Required* data (JSON String)')
+    }
+
+    let url = sprintf({ '{host}': this.host, '{workspace}': workspaceID, '{board}': boardID}, '{host}api/v2/workspaces/{workspace}/boards/{board}/items');
+    let config = Object.assign(this.config, {
+        url : url,
+        method: 'post',
+        data: data
+    })
+    return axios.request(config)
+    .then((response) => {
+        return response.data;
+    })
+    .catch((error) => {
+    return error;
+    });
+  }
   getItems(param){
     if(!param) {
         throw new Error('Must have exactly one parameter')
@@ -150,6 +177,32 @@ class Infinity {
         throw new Error('Required* boardID')
     }
     let url = sprintf({ '{host}': this.host, '{workspace}': workspaceID, '{board}': boardID}, '{host}api/v2/workspaces/{workspace}/boards/{board}/folders');
+    let config = Object.assign(this.config, {
+        url : url,
+        method: 'get',
+        params: options
+    })
+    return axios.request(config)
+    .then((response) => {
+        return response.data;
+    })
+    .catch((error) => {
+    return error;
+    });
+  }
+  getAttributeDetails(param) {
+    if(!param) {
+        throw new Error('Must have exactly one parameter')
+    }
+    const { workspaceID, boardID, attributeID, options } = param;
+    if(!workspaceID) {
+        throw new Error('Required* workspaceID')
+    } else if (!boardID) {
+        throw new Error('Required* boardID')
+    } else if (!attributeID) {
+        throw new Error('Required* attributeID')
+    }
+    let url = sprintf({ '{host}': this.host, '{workspace}': workspaceID, '{board}': boardID, '{attribute}': attributeID}, '{host}api/v2/workspaces/{workspace}/boards/{board}/attributes/{attribute}');
     let config = Object.assign(this.config, {
         url : url,
         method: 'get',
