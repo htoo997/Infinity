@@ -1,9 +1,34 @@
 const axios = require('axios');
+const delayBetweenRetries = 2000; // in milliseconds
+
 const sprintf = (replacementMap, str) => {
 return str.replace(new RegExp(Object.keys(replacementMap).join('|'), 'g'), function(matched) {
     return replacementMap[matched];
     });
 }
+const instance = axios.create();
+instance.interceptors.response.use(
+    response => response,
+    async error => {
+      if (error.response && error.response.status === 429) {
+        // Exponential backoff
+        const delay = Math.pow(2, error.config.retryCount) * delayBetweenRetries;
+        await new Promise(resolve => setTimeout(resolve, delay));
+        // Increment the retry count
+        error.config.retryCount = (error.config.retryCount || 0) + 1;
+        // Retry the request
+        return instance(error.config);
+      } else if (error.response && error.response.status === 504) {
+        // Retry the request after a certain delay
+        const delay = 1000; // in milliseconds
+        await new Promise(resolve => setTimeout(resolve, delay));
+        // Retry the request
+        return instance(error.config);
+      }
+  
+      return Promise.reject(error);
+    }
+  );
 
 class Infinity {
   constructor(param) {
@@ -82,7 +107,7 @@ class Infinity {
         method: 'post',
         data: data
     })
-    return axios.request(config)
+    return instance.request(config)
     .then((response) => {
         return response.data;
     })
@@ -269,6 +294,33 @@ class Infinity {
     let config = Object.assign(this.config, {
         url : url,
         method: 'get',
+    })
+    return axios.request(config)
+    .then((response) => {
+        return response.data;
+    })
+    .catch((error) => {
+    return error;
+    });
+  }
+  createAttribute(param){
+    if(!param) {
+        throw new Error('Must have exactly one parameter')
+    }
+    const { workspaceID, boardID, data } = param;
+    if(!workspaceID) {
+        throw new Error('Required* workspaceID')
+    } else if (!boardID) {
+        throw new Error('Required* boardID')
+    } else if(!data) {
+        throw new Error('Required* data (JSON String)')
+    }
+
+    let url = sprintf({ '{host}': this.host, '{workspace}': workspaceID, '{board}': boardID}, '{host}api/v2/workspaces/{workspace}/boards/{board}/attributes');
+    let config = Object.assign(this.config, {
+        url : url,
+        method: 'post',
+        data: data
     })
     return axios.request(config)
     .then((response) => {
