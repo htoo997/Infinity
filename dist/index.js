@@ -115,6 +115,33 @@ class Infinity {
     return error;
     });
   }
+  deleteItem(param) {
+    if(!param) {
+        throw new Error('Must have exactly one parameter')
+    }
+    const { workspaceID, boardID, itemID, options } = param;
+    if(!workspaceID) {
+        throw new Error('Required* workspaceID')
+    } else if (!boardID) {
+        throw new Error('Required* boardID')
+    } else if (!itemID) {
+        throw new Error('Required* itemID')
+    }
+
+    let url = sprintf({ '{host}': this.host, '{workspace}': workspaceID, '{board}': boardID, '{item}': itemID}, '{host}api/v2/workspaces/{workspace}/boards/{board}/items/{item}');
+    let config = Object.assign(this.config, {
+        url : url,
+        method: 'delete',
+        params: options
+    })
+    return axios.request(config)
+    .then((response) => {
+        return response.data;
+    })
+    .catch((error) => {
+    return error;
+    });
+  }
   getItems(param){
     if(!param) {
         throw new Error('Must have exactly one parameter')
